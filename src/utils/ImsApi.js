@@ -32,6 +32,19 @@ function GetStartDate() {
 }
 
 const GetRainSpecificStation = async (stationId, channelId) => {
+    // Dec 2020:
+    const FullThisMonthsUrl=GetThisMonthUrl(stationId, channelId);
+    const resThisMonth = await axios.get('https://cors-anywhere.herokuapp.com/' + FullThisMonthsUrl, {
+        headers: {
+            'Authorization': `ApiToken ${ApiToken}`
+        }
+    });
+    const ThisMonthsData=resThisMonth.data;
+    console.log('This Months data:');
+    console.log(`${ThisMonthsData}`);
+
+
+
     const FullImsUrl = GetRainUrl(stationId, channelId);
     function json(response) {
         return response.json()
@@ -41,27 +54,26 @@ const GetRainSpecificStation = async (stationId, channelId) => {
             'Authorization': `ApiToken ${ApiToken}`
         }
     });
-        //.then((res) => {
-            //console.log(res.data);
-            const AllData = res.data;
-            console.log('https://cors-anywhere.herokuapp.com/' + FullImsUrl);
-            console.log(AllData);
-            const FirstResult = AllData.data[0]; // twice data
-            console.log('FirstResult');
-            console.log(FirstResult);
+    //.then((res) => {
+    //console.log(res.data);
+    const AllData = res.data;
+    console.log('https://cors-anywhere.herokuapp.com/' + FullImsUrl);
+    console.log(AllData);
+    const FirstResult = AllData.data[0]; // twice data
+    console.log('FirstResult');
+    console.log(FirstResult);
 
-            console.log(FirstResult.channels[0].name);
-            console.log(FirstResult.channels[0].value);
-            // now one can do map.
-            //.reduce((a, b) => a + b, 0)
-            //[].reduce()
+    console.log(FirstResult.channels[0].name);
+    console.log(FirstResult.channels[0].value);
+    // now one can do map.
+    //.reduce((a, b) => a + b, 0)
+    //[].reduce()
 
-            var total = 0.0;
-            AllData.data.forEach(i => {
-                if (i.channels[0].name.toLowerCase() == 'rain')
-                    if (i.channels[0].status == 1)
-                        if (i.channels[0].value > 0)
-                {
+    var total = 0.0;
+    AllData.data.forEach(i => {
+        if (i.channels[0].name.toLowerCase() == 'rain')
+            if (i.channels[0].status == 1)
+                if (i.channels[0].value > 0) {
 
                     if (i.channels[0].value < 1000) {
                         console.log('rain per time span:');
@@ -69,29 +81,34 @@ const GetRainSpecificStation = async (stationId, channelId) => {
                         console.log(i.channels[0]);
                         console.log(i.channels[0].value);
                         total += i.channels[0].value;
-                        }
+                    }
 
 
                 }
 
-            });
-            console.log(total.toFixed(2));
+    });
+    console.log(total.toFixed(2));
 
 
-            //const TotalRain=AllData.data.reduce((a,b)=>{a.channels[0].value+b.channels[0].value,0});
-            //console.log(TotalRain);
+    //const TotalRain=AllData.data.reduce((a,b)=>{a.channels[0].value+b.channels[0].value,0});
+    //console.log(TotalRain);
 
 
 
-        // })
-        // .catch((error) => {
-        //     console.log('new itay error total rain sunday december 2020');
-        //     console.error(error)
-        // })
+    // })
+    // .catch((error) => {
+    //     console.log('new itay error total rain sunday december 2020');
+    //     console.error(error)
+    // })
 
     console.log('after rain axios');
     return total.toFixed(2);
 
+}
+
+function GetThisMonthUrl(stationId, channelId) {
+    const ThisMonthsRainUrl = `${BaseUrl}/${stationId}/data/${channelId}/monthly`;
+    return ThisMonthsRainUrl;
 }
 
 function GetRainUrl(stationId, channelId) {
@@ -150,7 +167,7 @@ const getStations = async () => {
     // return true;
 
 
-    const res=await axios.get('https://cors-anywhere.herokuapp.com/' + BaseUrl, {
+    const res = await axios.get('https://cors-anywhere.herokuapp.com/' + BaseUrl, {
         headers: {
             //'Access-Control-Allow-Origin': 'https://api.ims.gov.il',      
             //'User-Agent': 'Fiddler',
@@ -163,38 +180,37 @@ const getStations = async () => {
     });
 
 
-      //  .then((res) => {
+    //  .then((res) => {
 
-            //alert(res);
-            //alert(res.data);
-            // filter inactive .
-            const active=res.data.filter(i=>i.active);
+    //alert(res);
+    //alert(res.data);
+    // filter inactive .
+    const active = res.data.filter(i => i.active);
 
 
-            //console.log(res.data);
-            console.log(active);
+    //console.log(res.data);
+    console.log(active);
 
-//            const r=active.map(({name:title,stationId:PicId,stationId:stationId})=> 
-            const r=active.map(({name:title,stationId:PicId,monitors})=> 
-                {
-                    let ch=0;
-                 const element=monitors.find(i=>i.name.toLowerCase()=='rain');
-                 console.log(element);
-                 if (element)
-                  ch= element.channelId;
-                 console.log(monitors);
+    //            const r=active.map(({name:title,stationId:PicId,stationId:stationId})=> 
+    const r = active.map(({ name: title, stationId: PicId, monitors }) => {
+        let ch = 0;
+        const element = monitors.find(i => i.name.toLowerCase() == 'rain');
+        console.log(element);
+        if (element)
+            ch = element.channelId;
+        console.log(monitors);
 
-                 return {title,PicId,stationId:PicId,channelId:ch};
-                 //return {title,PicId,stationId};
-                }
-                );
-            console.log(r);
-            console.log(`This is total rainfull url for haifa technion ${GetRainUrl(43, 20)}`);
-       // })
-        // .catch((error) => {
-        //     console.log('new itay error sunday december 2020');
-        //     console.error(error)
-        // })
+        return { title, PicId, stationId: PicId, channelId: ch };
+        //return {title,PicId,stationId};
+    }
+    );
+    console.log(r);
+    console.log(`This is total rainfull url for haifa technion ${GetRainUrl(43, 20)}`);
+    // })
+    // .catch((error) => {
+    //     console.log('new itay error sunday december 2020');
+    //     console.error(error)
+    // })
 
     console.log('after axios');
 
